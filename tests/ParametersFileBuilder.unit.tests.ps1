@@ -2,10 +2,6 @@ using module './../modules/ParametersFileBuilder.psm1'
 Import-Module -Name "$PSScriptRoot/modules/UnitTest.Helpers.psm1" -Force
 InModuleScope ParametersFileBuilder {
 
-    Mock Write-Host {
-        return $null
-    }
-
     $MockTemplateFilePath = "$PSScriptRoot/resources/mock.template.json"
     $MockTemplateParametersFilePath = "TestDrive:\mock.parameters.json"
     [PSCustomObject]$MockTemplateFileObject = Get-Content -Path $MockTemplateFilePath -Raw | ConvertFrom-Json
@@ -14,6 +10,10 @@ InModuleScope ParametersFileBuilder {
 
 
     Describe "[ParametersFileBuilder] CreateParametersFileConfig() tests" {
+
+        Mock Write-Host {
+            return $null
+        }
 
         BeforeAll {
             Set-MockEnvironment
@@ -60,6 +60,11 @@ InModuleScope ParametersFileBuilder {
     }
 
     Describe "[ParametersFileBuilder] Save() tests" {
+
+        Mock Write-Host {
+            return $null
+        }
+
         BeforeAll {
             Set-MockEnvironment
         }

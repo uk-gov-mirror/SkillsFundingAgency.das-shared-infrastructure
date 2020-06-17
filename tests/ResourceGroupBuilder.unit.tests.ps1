@@ -2,11 +2,11 @@ using module './../modules/ResourceGroupBuilder.psm1'
 
 InModuleScope ResourceGroupBuilder {
 
-    Mock Write-Host {
-        return $null
-    }
-
     Describe "[ResourceGroupBuilder] CreateResourceGroups tests" {
+
+        Mock Write-Host {
+            return $null
+        }
 
         Mock Get-AzResourceGroup {
             return @{}

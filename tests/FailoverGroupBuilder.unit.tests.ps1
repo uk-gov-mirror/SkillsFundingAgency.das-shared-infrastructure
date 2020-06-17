@@ -2,11 +2,11 @@ using module './../modules/FailoverGroupBuilder.psm1'
 
 InModuleScope FailoverGroupBuilder{
 
-    Mock Write-Host {
-        return $null
-    }
-
     Describe "[FailoverGroupBuilder] CreateFailoverGroupConfig() tests" {
+
+        Mock Write-Host {
+            return $null
+        }
 
         $MockParsedEnvironmentNames = @("MOCK")
         $MockResourceGroupName = "mock-resource-group"

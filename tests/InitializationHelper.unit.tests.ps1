@@ -2,11 +2,11 @@ using module './../modules/InitializationHelper.psm1'
 
 InModuleScope InitializationHelper {
 
-    Mock Write-Host {
+    Describe "[InitializationHelper] isLoggedIn() tests" {
+
+        Mock Write-Host {
         return $null
     }
-
-    Describe "[InitializationHelper] isLoggedIn() tests" {
 
         Context "When the client is logged in to Azure" {
 
@@ -38,6 +38,10 @@ InModuleScope InitializationHelper {
 
     Describe "[InitializationHelper] GetBuildNumber() tests" {
 
+        Mock Write-Host {
+            return $null
+        }
+
         Context "When the script is ran from Azure Pipelines" {
 
             $MockBuildNumber = "1.0.0"
@@ -67,6 +71,10 @@ InModuleScope InitializationHelper {
     }
 
     Describe "[InitializationHelper] ParseEnvironmentNames() tests" {
+
+        Mock Write-Host {
+            return $null
+        }
 
         Context "When the EnvironmentNames parameter is used" {
             $MockInputObject = @{
