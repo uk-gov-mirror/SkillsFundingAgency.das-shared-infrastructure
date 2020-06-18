@@ -30,11 +30,13 @@ steps:
       node ./node_modules/eclint/bin/eclint.js check
     displayName: "Validate editorconfig"
     workingDirectory: $(System.DefaultWorkingDirectory)
-  - powershell: |
-      ./tests/Start-UnitTest.ps1
+  - task: powershell@2
     displayName: "Execute unit tests"
-    failOnStderr: "true"
-    workingDirectory:  $(System.DefaultWorkingDirectory)
+    inputs:
+      filePath: ./tests/Start-UnitTest.ps1
+      failOnStderr: true
+      pwsh: true
+      workingDirectory:  $(System.DefaultWorkingDirectory)
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'NUnit'
