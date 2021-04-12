@@ -126,15 +126,6 @@
         "environmentVariable": "gatewaySubnetCount"
       }
     },
-    "managementSubnetCount": {
-      "type": "int",
-      "defaultValue": 1,
-      "maxValue": 50,
-      "metadata": {
-        "description": "The number of management subnets to provision",
-        "environmentVariable": "managementSubnetCount"
-      }
-    },
     "apimSubnetCount": {
       "type": "int",
       "defaultValue": 0,
@@ -411,7 +402,6 @@
     "keyVaultName": "[concat(variables('resourceNamePrefix'),'-kv')]",
     "classicStorageName": "[concat(replace(variables('resourceNamePrefix'), '-',''), 'deploystr')]",
     "automationAccountName": "[concat(variables('resourceNamePrefix'),'-aa')]",
-    "mgmtManagementSubnetCount": 1,
     "virtualNetworkName": "[concat(variables('resourceNamePrefix'),'-vnet')]",
     "AKSKeyVaultAccessPolicy": [
       {
@@ -544,9 +534,6 @@
           },
           "virtualNetworkDeploy": {
             "value": "[parameters('virtualNetworkDeploy')]"
-          },
-          "managementSubnetCount": {
-            "value": "[variables('mgmtManagementSubnetCount')]"
           },
           "virtualNetworkAddressSpacePrefix": {
             "value": "10.0"
@@ -815,9 +802,6 @@
           },
           "gatewaySubnetCount": {
             "value": "[parameters('gatewaySubnetCount')]"
-          },
-          "managementSubnetCount": {
-            "value": "[parameters('managementSubnetCount')]"
           },
           "apimSubnetCount": {
             "value": "[parameters('apimSubnetCount')]"

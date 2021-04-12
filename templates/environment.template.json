@@ -77,14 +77,6 @@
         "description": "The number of gateway subnets to provision"
       }
     },
-    "managementSubnetCount": {
-      "type": "int",
-      "defaultValue": 1,
-      "maxValue": 1,
-      "metadata": {
-        "description": "The number of management subnets to provision"
-      }
-    },
     "apimSubnetCount": {
       "type": "int",
       "defaultValue": 1,
@@ -348,9 +340,6 @@
           },
           "gatewaySubnetCount": {
             "value": "[parameters('gatewaySubnetCount')]"
-          },
-          "managementSubnetCount": {
-            "value": "[parameters('managementSubnetCount')]"
           },
           "apimSubnetCount": {
             "value": "[parameters('apimSubnetCount')]"

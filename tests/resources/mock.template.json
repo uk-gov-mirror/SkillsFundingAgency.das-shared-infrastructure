@@ -157,15 +157,6 @@
         "environmentVariable": "gatewaySubnetCount"
       }
     },
-    "managementSubnetCount": {
-      "type": "int",
-      "defaultValue": 1,
-      "maxValue": 1,
-      "metadata": {
-        "description": "The number of management subnets to provision",
-        "environmentVariable": "managementSubnetCount"
-      }
-    },
     "apimSubnetCount": {
       "type": "int",
       "defaultValue": 0,
