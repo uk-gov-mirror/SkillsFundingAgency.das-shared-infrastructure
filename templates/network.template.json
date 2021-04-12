@@ -308,6 +308,7 @@
       "apiVersion": "2017-05-10",
       "name": "[concat('subnet-', variables('subnetConfiguration')[copyIndex()].name)]",
       "type": "Microsoft.Resources/deployments",
+      "condition": "[greater(length(variables('subnetConfiguration')),0)]",
       "dependsOn": [
         "virtual-network"
       ],
