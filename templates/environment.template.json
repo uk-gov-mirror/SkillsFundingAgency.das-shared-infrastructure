@@ -296,8 +296,8 @@
     }
   },
   "variables": {
-    "deploymentUrlBase": "https://raw.githubusercontent.com/SkillsFundingAgency/das-platform-building-blocks/master/templates/",
-    "sharedDeploymentUrlBase": "https://raw.githubusercontent.com/SkillsFundingAgency/das-shared-infrastructure/master/",
+    "deploymentUrlBase": "https://raw.githubusercontent.com/SkillsFundingAgency/das-platform-building-blocks/DASD-12494/templates/",
+    "sharedDeploymentUrlBase": "https://raw.githubusercontent.com/SkillsFundingAgency/das-shared-infrastructure/DASD-12494/",
     "environmentName": "[toLower(parameters('environmentName'))]",
     "resourceNamePrefix": "[toLower(concat('das-', variables('environmentName'),'-shared'))]",
     "resourceGroupName": "[resourceGroup().name]",
@@ -311,7 +311,7 @@
     "serviceBusNamespaceName": "[concat(variables('resourceNamePrefix'),'-ns')]",
     "sharedRedisCacheName": "[concat(variables('resourceNamePrefix'),'-rds')]",
     "sharedRedisPrivateEndpointName": "[concat(variables('sharedRedisCacheName'),'-pe')]",
-    "cdnProfileName": "[concat(variables('resourceNamePrefix'),'-cdn')]",
+    "azureFrontDoorName": "[concat(variables('resourceNamePrefix'),'-afd')]",
     "eventHubNamespaceName": "[concat(variables('resourceNamePrefix'),'-eh')]",
     "aiSearchName": "[concat(variables('resourceNamePrefix'),'-srch')]",
     "aiSearchPrivateEndpointName": "[concat(variables('aiSearchName'),'-pe')]",
@@ -849,26 +849,26 @@
         }
       }
     },
-    // {
-    //   "apiVersion": "2022-09-01",
-    //   "name": "cdn-profile",
-    //   "type": "Microsoft.Resources/deployments",
-    //   "properties": {
-    //     "mode": "Incremental",
-    //     "templateLink": {
-    //       "uri": "[uri(variables('deploymentUrlBase'),'cdn-profile.json')]",
-    //       "contentVersion": "1.0.0.0"
-    //     },
-    //     "parameters": {
-    //       "cdnProfileName": {
-    //         "value": "[variables('cdnProfileName')]"
-    //       },
-    //       "cdnSKU": {
-    //         "value": "Standard_Verizon"
-    //       }
-    //     }
-    //   }
-    // },
+    {
+      "apiVersion": "2022-09-01",
+      "name": "afd-profile",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(variables('deploymentUrlBase'),'front-door-profile.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "azureFrontDoorName": {
+            "value": "[variables('azureFrontDoorName')]"
+          },
+          "azureFrontDoorSKU": {
+            "value": "Standard_AzureFrontDoor"
+          }
+        }
+      }
+    },
     {
       "apiVersion": "2022-09-01",
       "name": "event-hub-namespace",
