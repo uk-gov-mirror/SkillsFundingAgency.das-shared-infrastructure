@@ -288,6 +288,103 @@
       "metadata": {
         "description": "Deploys the Private Linked Scoped Resource associated with the Shared Application Insights in Azure Monitor Private Link Scope"
       }
+    },
+    "sharedLogAnalyticsWorkspaceSku": {
+      "type": "string",
+      "defaultValue": "PerGB2018",
+      "metadata": {
+        "description": "SKU of the shared operational and security Log Analytics workspaces."
+      }
+    },
+    "operationalLogAnalyticsRetentionInDays": {
+      "type": "int",
+      "defaultValue": 90,
+      "metadata": {
+        "description": "Analytics retention in days for the shared operational workspace."
+      }
+    },
+    "securityLogAnalyticsRetentionInDays": {
+      "type": "int",
+      "defaultValue": 90,
+      "metadata": {
+        "description": "Analytics (instantly searchable) retention in days for the shared security workspace."
+      }
+    },
+    "securityLogAnalyticsTotalRetentionInDays": {
+      "type": "int",
+      "defaultValue": 365,
+      "metadata": {
+        "description": "Total retention in days for the shared security workspace tables listed in securityLogAnalyticsTableNames. The period between the analytics retention and this value is held in low cost long term retention."
+      }
+    },
+    "securityLogAnalyticsTableNames": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Security workspace tables to apply long term retention to. Empty until the resources that populate them are onboarded, because a table can only be configured once it exists."
+      }
+    },
+    "securityLogAnalyticsImmutabilityPolicyState": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "allowedValues": [
+        "Disabled",
+        "Unlocked",
+        "Locked"
+      ],
+      "metadata": {
+        "description": "WORM immutability state of the security log archive storage account. Locked is irreversible and prevents deletion of the account and its resource group until the immutability period expires. Must remain Disabled for DTA, which is torn down and rebuilt."
+      }
+    },
+    "securityLogArchiveTableNames": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Security workspace tables exported to the immutable storage archive."
+      }
+    },
+    "deploySecurityLogArchive": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "Deploys the immutable storage account that holds the tamper protected copy of the security logs."
+      }
+    },
+    "deploySecurityLogSplunkExport": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "Deploys the data export rule that streams targeted security tables to Splunk. Off until the Splunk side is listening, because exporting to a destination that is not consuming the data costs money for no benefit."
+      }
+    },
+    "securityLogSplunkTableNames": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Targeted security tables streamed to Splunk. Data export cannot filter rows, so targeting is expressed as a short list of tables."
+      }
+    },
+    "securityLogSplunkEventHubNamespaceResourceId": {
+      "type": "string",
+      "defaultValue": "none",
+      "metadata": {
+        "description": "Resource id of the Event Hubs namespace Splunk consumes. Supplied by configuration so that an existing namespace can be reused rather than a new one created."
+      }
+    },
+    "securityLogSplunkEventHubName": {
+      "type": "string",
+      "defaultValue": "none",
+      "metadata": {
+        "description": "Optional Event Hub name within the namespace. When empty, one Event Hub is created per exported table named am-{tableName}."
+      }
     }
   },
   "variables": {
@@ -305,6 +402,9 @@
     "sharedRedisPrivateEndpointName": "[concat(variables('sharedRedisCacheName'),'-pe')]",
     "afdProfileName": "[concat(variables('resourceNamePrefix'),'-afd')]",
     "eventHubNamespaceName": "[concat(variables('resourceNamePrefix'),'-eh')]",
+    "operationalLogAnalyticsWorkspaceName": "[concat(variables('resourceNamePrefix'),'-ops-la')]",
+    "securityLogAnalyticsWorkspaceName": "[concat(variables('resourceNamePrefix'),'-sec-la')]",
+    "securityLogArchiveStorageName": "[concat(replace(variables('resourceNamePrefix'), '-',''), 'secstr')]",
     "aiSearchName": "[concat(variables('resourceNamePrefix'),'-srch')]",
     "aiSearchPrivateEndpointName": "[concat(variables('aiSearchName'),'-pe')]",
     "aiSearchPrivateDnsZoneName": "privatelink.search.windows.net",
@@ -1311,6 +1411,158 @@
         "name": "productsLoop",
         "count": "[length(parameters('products'))]"
       }
+    },
+    {
+      "apiVersion": "2022-09-01",
+      "name": "shared-operational-log-analytics-workspace",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(variables('deploymentUrlBase'),'log-analytics-workspace.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('operationalLogAnalyticsWorkspaceName')]"
+          },
+          "logAnalyticsWorkspaceSku": {
+            "value": "[parameters('sharedLogAnalyticsWorkspaceSku')]"
+          },
+          "dataRetentionDays": {
+            "value": "[parameters('operationalLogAnalyticsRetentionInDays')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2022-09-01",
+      "name": "shared-security-log-analytics-workspace",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(variables('deploymentUrlBase'),'log-analytics-workspace.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('securityLogAnalyticsWorkspaceName')]"
+          },
+          "logAnalyticsWorkspaceSku": {
+            "value": "[parameters('sharedLogAnalyticsWorkspaceSku')]"
+          },
+          "dataRetentionDays": {
+            "value": "[parameters('securityLogAnalyticsRetentionInDays')]"
+          },
+          "totalRetentionInDays": {
+            "value": "[parameters('securityLogAnalyticsTotalRetentionInDays')]"
+          },
+          "tableNames": {
+            "value": "[parameters('securityLogAnalyticsTableNames')]"
+          },
+          "enableDataExport": {
+            "value": true
+          },
+          "disableLocalAuth": {
+            "value": true
+          }
+        }
+      }
+    },
+    {
+      "condition": "[equals(parameters('deploySecurityLogArchive'), 'Enabled')]",
+      "apiVersion": "2022-09-01",
+      "name": "shared-security-log-archive-storage",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(variables('deploymentUrlBase'),'storage-account-immutable.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "storageAccountName": {
+            "value": "[variables('securityLogArchiveStorageName')]"
+          },
+          "immutabilityPolicyState": {
+            "value": "[parameters('securityLogAnalyticsImmutabilityPolicyState')]"
+          },
+          "immutabilityPeriodSinceCreationInDays": {
+            "value": "[parameters('securityLogAnalyticsTotalRetentionInDays')]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[equals(parameters('deploySecurityLogArchive'), 'Enabled')]",
+      "apiVersion": "2022-09-01",
+      "name": "shared-security-log-archive-export",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(variables('deploymentUrlBase'),'log-analytics-workspace-data-export.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('securityLogAnalyticsWorkspaceName')]"
+          },
+          "dataExportRuleName": {
+            "value": "security-log-archive"
+          },
+          "destinationResourceId": {
+            "value": "[reference('shared-security-log-archive-storage').outputs.storageResourceId.value]"
+          },
+          "tableNames": {
+            "value": "[parameters('securityLogArchiveTableNames')]"
+          },
+          "enable": {
+            "value": true
+          }
+        }
+      },
+      "dependsOn": [
+        "shared-security-log-analytics-workspace",
+        "shared-security-log-archive-storage"
+      ]
+    },
+    {
+      "condition": "[equals(parameters('deploySecurityLogSplunkExport'), 'Enabled')]",
+      "apiVersion": "2022-09-01",
+      "name": "shared-security-log-splunk-export",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(variables('deploymentUrlBase'),'log-analytics-workspace-data-export.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('securityLogAnalyticsWorkspaceName')]"
+          },
+          "dataExportRuleName": {
+            "value": "security-log-splunk"
+          },
+          "destinationResourceId": {
+            "value": "[if(equals(parameters('securityLogSplunkEventHubNamespaceResourceId'), 'none'), '', parameters('securityLogSplunkEventHubNamespaceResourceId'))]"
+          },
+          "eventHubName": {
+            "value": "[if(equals(parameters('securityLogSplunkEventHubName'), 'none'), '', parameters('securityLogSplunkEventHubName'))]"
+          },
+          "tableNames": {
+            "value": "[parameters('securityLogSplunkTableNames')]"
+          },
+          "enable": {
+            "value": true
+          }
+        }
+      },
+      "dependsOn": [
+        "shared-security-log-analytics-workspace"
+      ]
     }
   ],
   "outputs": {
@@ -1325,6 +1577,22 @@
     "redisPrivateDnsZoneId": {
       "type": "string",
       "value": "[variables('redisPrivateDnsZoneId')]"
+    },
+    "operationalLogAnalyticsWorkspaceName": {
+      "type": "string",
+      "value": "[variables('operationalLogAnalyticsWorkspaceName')]"
+    },
+    "operationalLogAnalyticsWorkspaceResourceId": {
+      "type": "string",
+      "value": "[reference('shared-operational-log-analytics-workspace').outputs.logAnalyticsWorkspaceResourceId.value]"
+    },
+    "securityLogAnalyticsWorkspaceName": {
+      "type": "string",
+      "value": "[variables('securityLogAnalyticsWorkspaceName')]"
+    },
+    "securityLogAnalyticsWorkspaceResourceId": {
+      "type": "string",
+      "value": "[reference('shared-security-log-analytics-workspace').outputs.logAnalyticsWorkspaceResourceId.value]"
     }
   }
 }
